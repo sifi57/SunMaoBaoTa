@@ -1,0 +1,10 @@
+{
+  "name": "营造 · 榫卯宝塔",
+  "description": "AR 古建搭造",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
