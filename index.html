@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#12100e">
-<title>营造 · 榫卯宝塔 ｜ AR 古建搭造</title>
+<title>AR Timber Pagoda | Classical Architecture</title>
 <link rel="icon" type="image/svg+xml" href="./favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,23 +24,23 @@
 <!-- ══ UI overlay ══ -->
 <div id="ui">
 
-  <!-- ── 封面 ── -->
+  <!-- ── Cover ── -->
   <section id="cover" class="screen">
     <div class="cover-frame">
-      <div class="seal">營<br>造</div>
+      <div class="seal">YING<br>ZAO</div>
       <div class="cover-rule"></div>
-      <h1 class="cover-title"><span>榫</span><span>卯</span><span>宝</span><span>塔</span></h1>
-      <p class="cover-sub">A R · 古 建 搭 造</p>
+      <h1 class="cover-title" style="letter-spacing: 0.1em; font-size: 2.8rem;">TIMBER PAGODA</h1>
+      <p class="cover-sub">AR · CLASSICAL ARCHITECTURE</p>
       <div class="cover-line"></div>
       <p class="cover-desc">
-        依《营造法式》之制，于方寸之地<br>
-        立一座八角五层楼阁式木塔。<br>
-        自台基至塔刹，十九道工序，<br>
-        一榫一卯，不用一钉。
+        Based on the Yingzao Fashi (Treatise on Architectural Methods),<br>
+        build an octagonal five-story timber pagoda.<br>
+        From the base to the finial, 19 construction steps,<br>
+        using only mortise and tenon joints, without a single nail.
       </p>
       <button id="btn-enter" class="btn-primary">
-        <span class="btn-label">开 工</span>
-        <span class="btn-sub" id="enter-sub">检测设备…</span>
+        <span class="btn-label">START</span>
+        <span class="btn-sub" id="enter-sub">Checking device...</span>
       </button>
       <div id="cap-list" class="cap-list"></div>
     </div>
@@ -48,29 +48,29 @@
     <div class="cover-deco cd-2"></div>
   </section>
 
-  <!-- ── 载入 ── -->
+  <!-- ── Loading ── -->
   <section id="loading" class="screen hidden">
     <div class="load-wrap">
       <div class="load-ring"><div class="load-fill" id="load-fill"></div></div>
-      <p class="load-label" id="load-label">起 版</p>
+      <p class="load-label" id="load-label">Initializing</p>
       <p class="load-tip" id="load-tip"></p>
     </div>
   </section>
 
-  <!-- ── 放置引导 ── -->
+  <!-- ── Placing Guide ── -->
   <section id="placing" class="screen hidden pointer-none">
     <div class="place-hint">
       <div class="scan-icon"><i></i><i></i><i></i></div>
-      <p class="place-title" id="place-title">缓慢移动手机<br>寻找一块平地</p>
-      <p class="place-sub" id="place-sub">地面、桌面、书本皆可</p>
+      <p class="place-title" id="place-title">Move your phone slowly<br>to find a flat surface</p>
+      <p class="place-sub" id="place-sub">Floor, desk, or book will do</p>
     </div>
-    <button id="btn-place" class="btn-place">落 基</button>
+    <button id="btn-place" class="btn-place">Place</button>
   </section>
 
-  <!-- ── 主界面 HUD ── -->
+  <!-- ── Main HUD ── -->
   <section id="hud" class="screen hidden pointer-none">
 
-    <!-- 顶栏 -->
+    <!-- Topbar -->
     <header class="topbar">
       <div class="tb-left">
         <div class="progress-stack">
@@ -78,92 +78,92 @@
           <div class="ps-bar"><div class="ps-fill" id="ps-fill"></div></div>
         </div>
       </div>
-      <div class="tb-title" id="hud-title">台基·须弥座</div>
+      <div class="tb-title" id="hud-title">Base · Xumi Podium</div>
       <div class="tb-right">
-        <button class="icon-btn" id="btn-menu" aria-label="菜单">
+        <button class="icon-btn" id="btn-menu" aria-label="Menu">
           <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         </button>
       </div>
     </header>
 
-    <!-- 侧栏工具 -->
+    <!-- Side Tools -->
     <div class="side-tools">
-      <button class="tool" id="t-explode" title="拆解"><svg viewBox="0 0 24 24"><path d="M12 3v5M12 16v5M3 12h5M16 12h5"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/></svg><span>拆解</span></button>
-      <button class="tool" id="t-orbit" title="环视"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="9" ry="4"/><circle cx="12" cy="12" r="2.5"/></svg><span>环视</span></button>
-      <button class="tool" id="t-scale" title="缩放"><svg viewBox="0 0 24 24"><path d="M4 10V4h6M20 14v6h-6M4 4l7 7M20 20l-7-7"/></svg><span>缩放</span></button>
-      <button class="tool" id="t-reset" title="重置"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 3-6.2M4 4v5h5"/></svg><span>重置</span></button>
+      <button class="tool" id="t-explode" title="Explode"><svg viewBox="0 0 24 24"><path d="M12 3v5M12 16v5M3 12h5M16 12h5"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/></svg><span>Explode</span></button>
+      <button class="tool" id="t-orbit" title="Orbit"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="9" ry="4"/><circle cx="12" cy="12" r="2.5"/></svg><span>Orbit</span></button>
+      <button class="tool" id="t-scale" title="Scale"><svg viewBox="0 0 24 24"><path d="M4 10V4h6M20 14v6h-6M4 4l7 7M20 20l-7-7"/></svg><span>Scale</span></button>
+      <button class="tool" id="t-reset" title="Reset"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 3-6.2M4 4v5h5"/></svg><span>Reset</span></button>
     </div>
 
-    <!-- 底部构件托盘 -->
+    <!-- Bottom Tray -->
     <div class="tray-wrap">
       <div class="tray-caption">
-        <span class="tc-label" id="tray-label">取一件构件，安到亮起的位置</span>
+        <span class="tc-label" id="tray-label">Select a component to place it in the highlighted position</span>
       </div>
       <div class="tray" id="tray"></div>
       <div class="tray-rail"></div>
     </div>
   </section>
 
-  <!-- ── 知识卷轴 ── -->
+  <!-- ── Lore Scroll ── -->
   <aside id="scroll-card" class="scroll hidden">
     <div class="scroll-rod top"></div>
     <div class="scroll-body">
       <div class="sc-head">
-        <span class="sc-kicker" id="sc-kicker">工序 一</span>
-        <h2 class="sc-title" id="sc-title">台基·须弥座</h2>
-        <p class="sc-sub" id="sc-sub">夯土包石，八角须弥座</p>
+        <span class="sc-kicker" id="sc-kicker">Step 1</span>
+        <h2 class="sc-title" id="sc-title">Base · Xumi Podium</h2>
+        <p class="sc-sub" id="sc-sub">Rammed earth with stone facing, octagonal base</p>
       </div>
-      <div class="sc-rule"><i></i><b>營造法式</b><i></i></div>
+      <div class="sc-rule"><i></i><b>Yingzao Fashi</b><i></i></div>
       <p class="sc-text" id="sc-text"></p>
       <div class="sc-foot">
-        <button class="btn-ghost" id="sc-close">继 续 营 造</button>
+        <button class="btn-ghost" id="sc-close">CONTINUE BUILDING</button>
       </div>
     </div>
     <div class="scroll-rod bottom"></div>
   </aside>
 
-  <!-- ── 完工 ── -->
+  <!-- ── Finished ── -->
   <aside id="finish" class="screen hidden">
     <div class="fin-wrap">
       <div class="fin-glow"></div>
-      <p class="fin-kicker">十 九 工 序 竟</p>
-      <h2 class="fin-title">塔 成</h2>
+      <p class="fin-kicker">19 STEPS COMPLETED</p>
+      <h2 class="fin-title">PAGODA FINISHED</h2>
       <div class="fin-stats">
-        <div><b id="fin-h">0</b><span>层高（米）</span></div>
-        <div><b id="fin-p">0</b><span>构件数</span></div>
-        <div><b id="fin-t">0</b><span>用时</span></div>
+        <div><b id="fin-h">0</b><span>Height (m)</span></div>
+        <div><b id="fin-p">0</b><span>Components</span></div>
+        <div><b id="fin-t">0</b><span>Time</span></div>
       </div>
       <p class="fin-text">
-        八角五层，楼阁式，五铺作双抄。<br>
-        举折成曲，翼角起翘，塔刹擎天。<br>
-        <em>不用一钉，全凭榫卯。</em>
+        Octagonal, 5 stories, pavilion style.<br>
+        Curved roof, upturned eaves, towering finial.<br>
+        <em>Built entirely with mortise and tenon, without a single nail.</em>
       </p>
       <div class="fin-btns">
-        <button class="btn-primary sm" id="fin-tour">巡 览</button>
-        <button class="btn-ghost sm" id="fin-again">再 造</button>
+        <button class="btn-primary sm" id="fin-tour">Tour</button>
+        <button class="btn-ghost sm" id="fin-again">Rebuild</button>
       </div>
     </div>
   </aside>
 
-  <!-- ── 菜单 ── -->
+  <!-- ── Menu ── -->
   <aside id="menu" class="sheet hidden">
     <div class="sheet-body">
-      <h3 class="sheet-title">卷 目</h3>
-      <button class="row" id="m-mode"><span>呈现方式</span><b id="m-mode-v">—</b></button>
-      <button class="row" id="m-quality"><span>模型精度</span><b id="m-quality-v">精</b></button>
-      <button class="row" id="m-sound"><span>环境音</span><b id="m-sound-v">开</b></button>
-      <button class="row" id="m-struct"><span>显示内部构架</span><b id="m-struct-v">开</b></button>
-      <button class="row" id="m-skip"><span>一键落成</span><b>▸</b></button>
-      <button class="row" id="m-restart"><span>重新营造</span><b>▸</b></button>
+      <h3 class="sheet-title">MENU</h3>
+      <button class="row" id="m-mode"><span>Render Mode</span><b id="m-mode-v">—</b></button>
+      <button class="row" id="m-quality"><span>Model Quality</span><b id="m-quality-v">High</b></button>
+      <button class="row" id="m-sound"><span>Ambient Sound</span><b id="m-sound-v">On</b></button>
+      <button class="row" id="m-struct"><span>Show Internal Structure</span><b id="m-struct-v">On</b></button>
+      <button class="row" id="m-skip"><span>Auto Complete</span><b>▸</b></button>
+      <button class="row" id="m-restart"><span>Restart Building</span><b>▸</b></button>
       <div class="sheet-note" id="m-note"></div>
-      <button class="btn-ghost wide" id="m-close">收 起</button>
+      <button class="btn-ghost wide" id="m-close">Close</button>
     </div>
   </aside>
 
   <!-- ── toast ── -->
   <div id="toast" class="toast hidden"></div>
 
-  <!-- ── 提示气泡 ── -->
+  <!-- ── tooltips ── -->
   <div id="tip" class="tip hidden"></div>
 
 </div>

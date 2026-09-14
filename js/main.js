@@ -29,18 +29,18 @@ const S = {
   exploded: false,
   scaleIdx: 1,
   scales: [0.10, 0.20, 0.42, 1.0],
-  scaleNames: ['掌上', '案上', '庭中', '实尺'],
+  scaleNames: ['Tabletop', 'Desk', 'Courtyard', 'True Scale'],
   busy: false,
   thumbs: null,
   audio: null
 };
 
 const LOAD_TIPS = [
-  '《营造法式》成书于宋崇宁二年，李诫奉敕编修，是中国现存最早的建筑技术专著。',
-  '斗拱以「材」为模数：一材高十五分°、宽十分°，所有构件尺寸皆由此推算。',
-  '应县木塔建于辽清宁二年，高六十七米，全塔用斗拱五十四种，未用一钉。',
-  '「举折」使屋面成凹曲线：檐口平缓以远抛雨水，脊部陡峻以速排水。',
-  '榫卯节点在地震时可微微错动、耗散能量——是天然的隔震构造。'
+  '"Yingzao Fashi" was compiled by Li Jie in 1103 (Song Dynasty), the earliest surviving Chinese architectural treatise.',
+  'Brackets use "Cai" as a module: one Cai is 15 Fen high and 10 Fen wide, standardizing all dimensions.',
+  'The Yingxian Timber Pagoda (built 1056) is 67 meters tall, using 54 types of bracket sets without a single nail.',
+  '"Juzhe" creates a concave roof: gentle eaves throw water far, steep ridges drain water fast.',
+  'Mortise and tenon joints can shift slightly during earthquakes to dissipate energy—a natural seismic isolator.'
 ];
 
 /* ==========================================================================
@@ -77,17 +77,17 @@ function paintCaps(c) {
   const list = $('#cap-list');
   const sub = $('#enter-sub');
   const items = [];
-  if (c.xr) items.push(['WebXR 真实平面', true]);
+  if (c.xr) items.push(['WebXR Real Planes', true]);
   else items.push(['WebXR', false]);
-  items.push([c.camera && c.secure ? '摄像头' : '摄像头', !!(c.camera && c.secure)]);
-  items.push(['陀螺仪', !!c.gyro]);
+  items.push([c.camera && c.secure ? 'Camera' : 'Camera', !!(c.camera && c.secure)]);
+  items.push(['Gyroscope', !!c.gyro]);
   list.innerHTML = items.map(([n, ok]) =>
     `<span class="cap ${ok ? 'ok' : 'no'}">${n}</span>`).join('');
 
-  if (c.xr) sub.textContent = '真实 AR · 可绕塔行走';
-  else if (c.camera && c.secure) sub.textContent = c.ios ? '实景 AR · 陀螺仪锚定' : '实景 AR';
-  else if (!c.secure) sub.textContent = '需 HTTPS · 将以三维模式打开';
-  else sub.textContent = '三维模式 · 可旋转查看';
+  if (c.xr) sub.textContent = 'True AR · Walk Around';
+  else if (c.camera && c.secure) sub.textContent = c.ios ? 'Camera AR · Gyro Anchored' : 'Camera AR';
+  else if (!c.secure) sub.textContent = 'HTTPS Required · 3D Preview';
+  else sub.textContent = '3D Mode · Orbit View';
 }
 
 /* ==========================================================================
@@ -105,14 +105,14 @@ async function onEnter() {
     onSurfaceState: onSurface
   });
   S.engine = engine;
-  await frame(); setLoad(0.06, '起 版');
+  await frame(); setLoad(0.06, 'Initializing');
 
   const env = engine.buildEnvironment();
   const M = buildMaterials();
   applyEnv(M, env);
   M.plaqueFace = makePlaqueMaterial('榫卯宝塔');
   S.M = M;
-  await frame(); setLoad(0.16, '和 料');
+  await frame(); setLoad(0.16, 'Gathering materials');
 
   // 2. build the pagoda (chunked so the UI can breathe)
   const built = await buildChunked(M);
@@ -122,12 +122,12 @@ async function onEnter() {
   built.root.scale.setScalar(S.scales[S.scaleIdx]);
   engine.setContactShadowSize(built.root.userData.footprint * S.scales[S.scaleIdx] * 1.5);
   $('#step-all').textContent = S.steps.length;
-  await frame(); setLoad(0.86, '绘 图');
+  await frame(); setLoad(0.86, 'Drafting');
 
   // 3. tray thumbnails
   S.thumbs = new ThumbRenderer(S.M, env);
   buildTray();
-  await frame(); setLoad(1.0, '就 绪');
+  await frame(); setLoad(1.0, 'Ready');
   await sleep(320);
 
   // 4. pick a mode
@@ -145,7 +145,7 @@ async function onEnter() {
       return;
     } catch (e) {
       $('#feed').classList.remove('on');
-      toast(e.message === 'CAMERA_DENIED' ? '未获得摄像头权限，改用三维模式' : '摄像头不可用，改用三维模式');
+      toast(e.message === 'CAMERA_DENIED' ? 'Camera permission denied, using Preview mode' : 'Camera unavailable, using Preview mode');
     }
   }
   // viewer fallback
@@ -158,12 +158,12 @@ async function onEnter() {
 async function buildChunked(M) {
   const out = buildPagoda(M, { structural: S.structural, quality: S.quality });
   // buildPagoda is synchronous; report progress in a few slices for feel
-  for (let i = 0; i < 5; i++) { await frame(); setLoad(0.20 + i * 0.13, '造 作'); }
+  for (let i = 0; i < 5; i++) { await frame(); setLoad(0.20 + i * 0.13, 'Building'); }
   return out;
 }
 
 /* ==========================================================================
-   匾额 text material — render 榫卯宝塔 with a real brush font
+   匾额 text material — render PAGODA with a real brush font
    ========================================================================== */
 function makePlaqueMaterial(text) {
   const c = document.createElement('canvas');
@@ -181,9 +181,9 @@ function makePlaqueMaterial(text) {
   // characters
   g.fillStyle = '#e8c463';
   g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.font = '900 148px "Ma Shan Zheng","Noto Serif SC",serif';
+  g.font = '900 100px "Ma Shan Zheng","Noto Serif SC",serif';
   g.shadowColor = 'rgba(0,0,0,.7)'; g.shadowBlur = 12; g.shadowOffsetY = 5;
-  g.fillText(text, 384, 168);
+  g.fillText("TIMBER PAGODA", 384, 168);
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   t.anisotropy = 8;
@@ -209,17 +209,17 @@ function onSurface(state) {
   const title = $('#place-title'), sub = $('#place-sub');
   if (state === 'found' || state === 'floor') {
     btn.classList.add('ready');
-    title.innerHTML = '找到平面了<br>点「落基」放下台基';
-    sub.textContent = '放好后可绕塔走动观察';
+    title.innerHTML = 'Surface found<br>Tap "Place" to start';
+    sub.textContent = 'You can walk around after placing';
   } else {
     btn.classList.remove('ready');
     if (S.mode === MODE.GYRO) {
       btn.classList.add('ready');   // gyro mode can always place
-      title.innerHTML = '把手机略向下倾<br>对准地面';
-      sub.textContent = '对准后点「落基」';
+      title.innerHTML = 'Tilt your phone down<br>towards the floor';
+      sub.textContent = 'Tap "Place" when ready';
     } else {
-      title.innerHTML = '缓慢移动手机<br>寻找一块平地';
-      sub.textContent = '地面、桌面、书本皆可';
+      title.innerHTML = 'Move your phone slowly<br>to find a flat surface';
+      sub.textContent = 'Floor, desk, or book will do';
     }
   }
 }
@@ -314,8 +314,8 @@ function markTray() {
   const next = $(`#tray .piece[data-i="${S.cursor}"]`);
   if (next) next.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
   $('#tray-label').textContent = S.cursor >= S.steps.length
-    ? '十九工序已竟，塔成'
-    : `取「${S.steps[S.cursor].title.split('·').pop()}」安到塔上`;
+    ? '19 steps completed, Pagoda finished'
+    : `Select "${S.steps[S.cursor].title.split('·').pop()}" to place`;
 }
 
 /* ==========================================================================
@@ -325,7 +325,7 @@ function onPiece(i, el) {
   if (S.busy) return;
   if (i < S.cursor) { openScroll(i); return; }
   if (i > S.cursor) {
-    toast('须依次营造 — 先安「' + S.steps[S.cursor].title.split('·').pop() + '」');
+    toast('Build in order — place "' + S.steps[S.cursor].title.split('·').pop() + '" first');
     sfx('deny');
     const t = $(`#tray .piece[data-i="${S.cursor}"]`);
     if (t) { t.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.12)' }, { transform: 'scale(1)' }], { duration: 420, easing: 'ease-out' }); }
@@ -377,12 +377,10 @@ async function installStep(i) {
    ========================================================================== */
 function openScroll(i, first = false) {
   const st = S.steps[i];
-  const NUM = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十',
-    '十一', '十二', '十三', '十四', '十五', '十六', '十七', '十八', '十九', '二十'];
-  $('#sc-kicker').textContent = `工序 ${NUM[i] || i + 1}`;
+  $('#sc-kicker').textContent = `Step ${i + 1}`;
   $('#sc-title').textContent = st.title;
   $('#sc-sub').textContent = st.sub;
-  $('#sc-text').innerHTML = st.lore.replace(/「([^」]+)」/g, '<em>「$1」</em>');
+  $('#sc-text').innerHTML = st.lore.replace(/「([^」]+)」/g, '<em>"$1"</em>');
   const card = $('#scroll-card');
   card.classList.remove('hidden');
   card.style.animation = 'none';
@@ -402,16 +400,16 @@ function updateHUD() {
   $('#step-now').textContent = n;
   $('#ps-fill').style.width = `${(n / all) * 100}%`;
   const cur = S.steps[Math.min(n, all - 1)];
-  $('#hud-title').textContent = n >= all ? '塔 成' : cur.title;
+  $('#hud-title').textContent = n >= all ? 'PAGODA FINISHED' : cur.title;
 }
 
 function updateModeLabel() {
-  const names = { xr: 'WebXR 真实平面', gyro: '实景 · 陀螺仪', view: '三维模式' };
+  const names = { xr: 'WebXR Real Plane', gyro: 'Camera · Gyro', view: '3D Preview' };
   $('#m-mode-v').textContent = names[S.mode] || '—';
   const note = $('#m-note');
-  if (S.mode === MODE.XR) note.textContent = '当前使用设备的平面检测，可端着手机绕塔走动，模型会固定在真实地面上。';
-  else if (S.mode === MODE.GYRO) note.textContent = '当前为实景陀螺仪模式：摄像头作背景，转动手机环视。原地转身效果最佳，大幅走动会有漂移。';
-  else note.textContent = '当前为三维模式：单指拖动旋转、双指捏合缩放。若需实景 AR，请在手机上以 HTTPS 打开并允许摄像头。';
+  if (S.mode === MODE.XR) note.textContent = 'Using plane detection. You can walk around the pagoda, the model is anchored to the real floor.';
+  else if (S.mode === MODE.GYRO) note.textContent = 'Using gyro mode: camera background with gyroscope rotation. Best experienced turning in place; walking may cause drift.';
+  else note.textContent = 'Using 3D mode: drag to rotate, pinch to scale. For AR, open on a phone with HTTPS and camera access.';
 }
 
 /* ==========================================================================
@@ -424,14 +422,14 @@ function wireUI() {
     S.exploded = !S.exploded;
     $('#t-explode').classList.toggle('on', S.exploded);
     explode(S.exploded);
-    toast(S.exploded ? '构件拆解 — 看清每一层的做法' : '构件复位');
+    toast(S.exploded ? 'Explode View — see the inner layers' : 'Reset View');
   });
 
   $('#t-orbit').addEventListener('click', () => {
     const on = !S._spin;
     S._spin = on;
     $('#t-orbit').classList.toggle('on', on);
-    toast(on ? '自动环视' : '停止环视');
+    toast(on ? 'Auto-Orbit On' : 'Auto-Orbit Off');
   });
 
   $('#t-scale').addEventListener('click', () => {
@@ -439,7 +437,7 @@ function wireUI() {
     const k = S.scales[S.scaleIdx];
     S.pagoda.scale.setScalar(k);
     S.engine.setContactShadowSize(S.pagoda.userData.footprint * k * 1.5);
-    toast(`${S.scaleNames[S.scaleIdx]} · 约 ${(S.pagoda.userData.totalHeight * k).toFixed(2)} 米`);
+    toast(`${S.scaleNames[S.scaleIdx]} · Approx. ${(S.pagoda.userData.totalHeight * k).toFixed(2)}m`);
     sfx('tick');
   });
 
@@ -451,28 +449,28 @@ function wireUI() {
       hide('#hud'); show('#placing');
       $('#gl').addEventListener('pointerdown', onCanvasTap);
     }
-    toast('已重置视角');
+    toast('View Reset');
   });
 
   $('#btn-menu').addEventListener('click', () => { show('#menu'); updateModeLabel(); });
   $('#m-close').addEventListener('click', () => hide('#menu'));
   $('#m-sound').addEventListener('click', () => {
     S.sound = !S.sound;
-    $('#m-sound-v').textContent = S.sound ? '开' : '关';
+    $('#m-sound-v').textContent = S.sound ? 'On' : 'Off';
     if (S.sound) startAmbient(); else stopAmbient();
   });
   $('#m-struct').addEventListener('click', () => {
     S.structural = !S.structural;
-    $('#m-struct-v').textContent = S.structural ? '开' : '关';
+    $('#m-struct-v').textContent = S.structural ? 'On' : 'Off';
     toggleStructural(S.structural);
   });
   $('#m-quality').addEventListener('click', () => {
     S.quality = S.quality === 'high' ? 'fast' : 'high';
-    $('#m-quality-v').textContent = S.quality === 'high' ? '精' : '快';
+    $('#m-quality-v').textContent = S.quality === 'high' ? 'High' : 'Fast';
     S.engine.renderer.setPixelRatio(S.quality === 'high' ? Math.min(devicePixelRatio, 2) : 1);
     S.engine.renderer.shadowMap.enabled = S.quality === 'high';
     S.engine.scene.traverse(o => { if (o.material) o.material.needsUpdate = true; });
-    toast(S.quality === 'high' ? '高精度渲染' : '流畅优先');
+    toast(S.quality === 'high' ? 'High Quality Rendering' : 'Performance Prioritized');
   });
   $('#m-skip').addEventListener('click', async () => {
     hide('#menu');
@@ -487,14 +485,14 @@ function wireUI() {
   });
   $('#m-restart').addEventListener('click', () => { hide('#menu'); restart(); });
   $('#m-mode').addEventListener('click', () => {
-    toast(S.mode === MODE.VIEW ? '在手机上打开可启用实景 AR' : '当前已是最佳可用模式');
+    toast(S.mode === MODE.VIEW ? 'Open on phone for AR mode' : 'Already in best available mode');
   });
 
   $('#fin-again').addEventListener('click', () => { hide('#finish'); restart(); });
   $('#fin-tour').addEventListener('click', () => {
     hide('#finish');
     S._spin = true; $('#t-orbit').classList.add('on');
-    toast('绕塔巡览 — 可点侧栏「拆解」看内部构架');
+    toast('Orbit Tour — tap "Explode" to see internal structure');
   });
 
   // pinch to scale in AR modes

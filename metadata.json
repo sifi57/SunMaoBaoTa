@@ -1,6 +1,6 @@
 {
-  "name": "营造 · 榫卯宝塔",
-  "description": "AR 古建搭造",
+  "name": "Timber Pagoda",
+  "description": "AR Architecture",
   "requestFramePermissions": [
     "camera"
   ],

@@ -84,22 +84,22 @@ export function buildPagoda(M, opts = {}) {
 
   /* ---------- STEP 1 · 台基 ---------------------------------------------- */
   {
-    const g = step('taiji', '台基·须弥座',
-      '夯土包石，八角须弥座',
-      '塔从「台基」起。八角须弥座分圭角、下枋、束腰、上枋数层，束腰刻壶门。台基不只为美观——它把塔身荷载摊到夯土之上，并隔断地下潮气，是木塔千年不朽的第一道防线。',
+    const g = step('taiji', 'Base · Sumeru Throne',
+      'Rammed earth covered in stone, an octagonal Sumeru throne',
+      'The pagoda starts from the "base". The octagonal Sumeru throne is divided into layers... It not only serves an aesthetic purpose—it distributes the load onto the rammed earth and blocks rising dampness. It is the first line of defense that keeps the timber pagoda standing for a millennium.',
       'stone');
     const podR = sched[0].R + 0.62;
-    g.add(mesh(B.apron(podR), M.stone, '散水'));
+    g.add(mesh(B.apron(podR), M.stone, 'Apron'));
     const pod = B.podium(podR, 0.94);
-    g.add(mesh(pod.geo, M.stone, '须弥座'));
+    g.add(mesh(pod.geo, M.stone, 'Sumeru Throne'));
     const st = B.stairs(podR, 0.94, 1.78);
-    g.add(mesh(st.geo, M.stone, '踏道'));
+    g.add(mesh(st.geo, M.stone, 'Stairs'));
     Y = 0.94;
   }
 
   /* ---------- per-storey loop ------------------------------------------- */
   sched.forEach((S, si) => {
-    const ord = ['一', '二', '三', '四', '五'][si];
+    const ord = si + 1;
     const cai = D.caiScale(S.cai);
     const storeyBase = Y;
 
@@ -107,11 +107,11 @@ export function buildPagoda(M, opts = {}) {
     {
       const merged = GRAIN[si].col === 'frame';
       const g = step(key(si, 'col'),
-        merged ? `第${ord}层·塔身` : `第${ord}层·柱网`,
-        merged ? '柱网、门窗、阑额一并立起' : `外槽八柱 + 内槽八柱，侧脚 1/100`,
+        merged ? `Storey ${ord} · Body` : `Storey ${ord} · Columns`,
+        merged ? 'Columns, doors, windows, and architraves raised together' : `Outer 8 columns + inner 8 columns, inward lean 1/100`,
         si === 0
-          ? '「柱」立而屋成。八角塔每层用外槽八柱、内槽八柱，共十六根。柱身并不直：中段微微膨出，柱顶略收，称「卷杀」，视觉上更显挺拔。外圈柱还向内倾斜约百分之一，称「侧脚」——让整层柱网收成一个内聚的桶箍，专抗侧向风力。'
-          : `层层向上收进，称「收分」。第${ord}层柱径、柱高与开间都比下层小一号，塔身因此形成缓和的收分曲线；重心持续下压，越高越稳。此层柱网、隔扇与阑额一并立起。`,
+          ? '"When columns stand, the house is formed." The octagonal pagoda uses 8 outer and 8 inner columns per storey, 16 in total. The shafts are not straight: they bulge slightly in the middle and taper at the top, called "Entasis", making them look more upright. The outer columns also lean inward by about 1%, called "Cejiao" (Side-footing) - turning the entire column grid into a cohesive barrel hoop specifically to resist lateral wind loads.'
+          : `Tapering inwards layer by layer is called "Shoufen". The columns, height, and bays of Storey ${ord} are all smaller than the one below, giving the pagoda a gentle tapering curve; the center of gravity is continuously pressed down, making it more stable the higher it goes. The column grid, doors, and architraves of this storey are erected together.`,
         'wood');
       const outer = F.columnRing(S.R);
       const inner = F.columnRing(S.R * 0.52);
@@ -140,11 +140,11 @@ export function buildPagoda(M, opts = {}) {
 
     /* ----- 门窗墙 (ground storey gets the full treatment) ----- */
     {
-      const g = step(key(si, 'infill'), `第${ord}层·隔扇门窗`,
-        si === 0 ? '正四面隔扇门，斜四面直棂窗' : '四面开门，四面实壁',
+      const g = step(key(si, 'infill'), `Storey ${ord} · Doors & Windows`,
+        si === 0 ? 'Panel doors on cardinal faces, mullion windows on diagonals' : 'Four open doors, four solid walls',
         si === 0
-          ? '「隔扇」是可拆的木框门。三交六椀菱花心糊窗纸，透光而不透风；下部裙板实心防踢。斜向四面用直棂窗——竖棂条既通风采光，又不给外力留下大面受风面。'
-          : '楼阁式塔每层都能登临，门洞按方位轮换，让人绕行时视野不断变化，也让结构受力更均匀。',
+          ? '"Geshan" are removable wooden frame doors. The lattice is pasted with paper, letting in light but not wind; the lower skirt panel is solid to prevent kicking. The diagonal faces use mullion windows—vertical bars provide ventilation and light without leaving a large wind-catching surface.'
+          : 'The pavilion-style pagoda can be ascended on every storey. The door openings rotate in orientation, changing the view as one walks around, and also distributing structural stress more evenly.',
         'wood');
       const frames = [], lattices = [], papers = [], walls = [];
       for (let fi = 0; fi < 8; fi++) {
@@ -160,24 +160,24 @@ export function buildPagoda(M, opts = {}) {
         if (inf.paper) papers.push(inf.paper);
         if (inf.wall) walls.push(inf.wall);
       }
-      if (frames.length) g.add(mesh(merge(frames), M.woodRed, '门框'));
-      if (walls.length) g.add(mesh(merge(walls), M.plaster, '墙'));
+      if (frames.length) g.add(mesh(merge(frames), M.woodRed, 'Door Frame'));
+      if (walls.length) g.add(mesh(merge(walls), M.plaster, 'Wall'));
       if (lattices.length) {
-        const lm = mesh(merge(lattices), M.lattice, '棂花');
+        const lm = mesh(merge(lattices), M.lattice, 'Lattice');
         lm.castShadow = false;
         g.add(lm);
       }
       if (papers.length) {
-        const pm = mesh(merge(papers), M.paper, '窗纸');
+        const pm = mesh(merge(papers), M.paper, 'Paper');
         pm.castShadow = false;
         g.add(pm);
       }
       // 匾额 on the front face of the ground storey
       if (si === 0) {
         const pl = F.plaque(S.R, 0, storeyBase + S.colH * 0.98, '');
-        g.add(mesh(pl.body, M.woodRed, '匾框'));
+        g.add(mesh(pl.body, M.woodRed, 'Plaque Frame'));
         const faceMat = M.plaqueFace || M.plaque;
-        const fm = mesh(pl.face, faceMat, '匾心');
+        const fm = mesh(pl.face, faceMat, 'Plaque Face');
         fm.castShadow = false;
         g.add(fm);
       }
@@ -185,15 +185,15 @@ export function buildPagoda(M, opts = {}) {
 
     /* ----- 阑额 + 普拍枋 ----- */
     {
-      const g = step(key(si, 'beam'), `第${ord}层·阑额普拍枋`,
-        '柱头联络材，上承斗拱',
-        '「阑额」横穿柱头，把八根独立的柱子箍成一个整体；其上再加一层扁而宽的「普拍枋」——这是辽宋工匠的关键发明，为斗拱提供了连续的坐垫，让荷载可以沿枋横向传递，而不是全压在柱顶一点上。枋心绘旋子彩画，青绿相间，中央旋眼描金。',
+      const g = step(key(si, 'beam'), `Storey ${ord} · Architraves`,
+        'Column-head connecting ties, supporting the brackets',
+        'The "Lan\'e" (Architrave) runs across the column heads, hooping the eight independent columns into a whole. Above it is added a flat and wide "Pupai Fang" (Plate Beam)—a key invention of Liao and Song craftsmen, providing a continuous seat for the bracket sets, allowing the load to be transmitted laterally along the beam instead of pressing entirely on a single point atop the column. The beam is painted with Xuanzi polychrome, alternating blue and green, with gold traced in the center.',
         'wood');
-      g.add(mesh(F.ringBeam(S.R, { h: 0.34 * (1 - si * 0.04), w: 0.17, y: colTop - 0.17 }), M.woodRed, '阑额'));
-      g.add(mesh(F.caihuaBand(S.R + 0.005, { h: 0.19, y: colTop - 0.17, w: 0.055 }), M.caihua, '彩画枋心'));
-      g.add(mesh(F.plateBeam(S.R, { h: 0.11, w: 0.36, y: colTop + 0.055 }), M.woodRed, '普拍枋'));
+      g.add(mesh(F.ringBeam(S.R, { h: 0.34 * (1 - si * 0.04), w: 0.17, y: colTop - 0.17 }), M.woodRed, 'Architrave'));
+      g.add(mesh(F.caihuaBand(S.R + 0.005, { h: 0.19, y: colTop - 0.17, w: 0.055 }), M.caihua, 'Painted Beam'));
+      g.add(mesh(F.plateBeam(S.R, { h: 0.11, w: 0.36, y: colTop + 0.055 }), M.woodRed, 'Plate Beam'));
       // inner ring tie beams
-      g.add(mesh(F.ringBeam(S.R * 0.52, { h: 0.26, w: 0.15, y: colTop + 0.10 }), M.woodRed, '内槽额'));
+      g.add(mesh(F.ringBeam(S.R * 0.52, { h: 0.26, w: 0.15, y: colTop + 0.10 }), M.woodRed, 'Inner Architrave'));
     }
 
     const bracketY = colTop + 0.11;
@@ -202,12 +202,12 @@ export function buildPagoda(M, opts = {}) {
     {
       const mergedCap = GRAIN[si].dg === 'cap';
       const g = step(key(si, 'dg'),
-        mergedCap ? `第${ord}层·斗拱与檐` : `第${ord}层·斗拱`,
-        si === 0 ? '五铺作双抄，柱头 + 补间 + 转角'
-          : (mergedCap ? '斗拱、腰檐、平坐一并架起' : '五铺作，逐层减跳'),
+        mergedCap ? `Storey ${ord} · Brackets & Eaves` : `Storey ${ord} · Brackets`,
+        si === 0 ? '5-step double-cantilever, column + inter-bay + corner'
+          : (mergedCap ? 'Brackets, eaves, and deck raised together' : '5-step sets, reducing outward jumps per storey'),
         si === 0
-          ? '「斗拱」是中国木构的心脏。栌斗坐在柱头，华拱层层向外挑出，每挑一层叫一「跳」；两跳即「五铺作」。它把屋檐的重量沿斜线传回柱心，同时向外托出深远的出檐。所有构件全靠榫卯咬合，不用一根钉——地震时节点可微微错动、耗散能量，是天然的隔震装置。'
-          : '上层斗拱逐层「减跳」，出跳更短、用材更小。这既呼应塔身收分，也让屋檐层层内收，合成宝塔那道著名的收分轮廓。斗拱之上随即架起腰檐与平坐，一层就此完工。',
+          ? 'The "Dougong" (Bracket Set) is the heart of Chinese timber framing. The base block sits on the column, and cantilever arms project outwards layer by layer. Each projection is a "jump"; two jumps make a "5-step set". It transfers the roof\'s weight diagonally back to the column core while supporting deep overhangs. All members are joined by mortise and tenon without a single nail—during an earthquake, the joints can shift slightly to dissipate energy, acting as a natural seismic isolator.'
+          : 'Upper storey brackets gradually reduce their jumps, projecting less and using smaller timber. This echoes the tapering of the pagoda body and brings the eaves inward layer by layer, forming the pagoda\'s famous tapering silhouette. The eaves and deck are immediately erected above the brackets, completing a storey.',
         'dougong');
       const layout = D.bracketLayout(S.R, { perBay: si < 2 ? 1 : 1, y: bracketY });
       const jump = si < 2 ? 2 : 2;
@@ -223,22 +223,22 @@ export function buildPagoda(M, opts = {}) {
       if (merged.bare) g.add(instances(merged.bare, M.woodBare, midSets));
       // 罗汉枋 / 撩檐枋 rings tying the bracket heads together
       const reach = merged.reach;
-      g.add(mesh(F.ringBeam(S.R + reach, { h: cai.h, w: cai.f(10), y: bracketY + merged.top - cai.h * 0.4 }), M.woodRed, '撩檐枋'));
-      g.add(mesh(F.ringBeam(S.R + reach * 0.5, { h: cai.h, w: cai.f(10), y: bracketY + merged.top - cai.h * 1.9 }), M.woodRed, '罗汉枋'));
+      g.add(mesh(F.ringBeam(S.R + reach, { h: cai.h, w: cai.f(10), y: bracketY + merged.top - cai.h * 0.4 }), M.woodRed, 'Eave Tie'));
+      g.add(mesh(F.ringBeam(S.R + reach * 0.5, { h: cai.h, w: cai.f(10), y: bracketY + merged.top - cai.h * 1.9 }), M.woodRed, 'Luohan Tie'));
       S._reach = reach;
       S._bracketTop = bracketY + merged.top;
     }
 
     /* ----- 梁架 (top storey only, visible under the big roof) ----- */
     if (S.isTop) {
-      const g = step(key(si, 'liang'), '顶层·梁架藻井',
-        '抹角梁递角梁 + 八角藻井',
-        '八角形的屋顶如何收到一个尖？靠「抹角梁」——斜跨两面、切掉角部，把八边形逐层缩成更小的八边形，直到能被一根雷公柱收住。顶心做「藻井」，层层叠缩如穹窿，既是装饰，也把顶部构件锁成整体。',
+      const g = step(key(si, 'liang'), 'Top Storey · Frame & Coffered Ceiling',
+        'Diagonal beams + Octagonal coffered ceiling',
+        'How does an octagonal roof taper to a point? With "Mojiao" (Corner-cut) diagonal beams—spanning across two faces, cutting off the corners, shrinking the octagon layer by layer into a smaller one, until it can be capped by a central king post. The center features a "Zaojing" (Coffered Ceiling), stacked and shrinking like a dome, serving both as decoration and locking the top members together.',
         'wood');
-      g.add(mesh(N.diagonalBeams(S.R * 0.82, S._bracketTop + 0.10, { shrink: 0.66 }), M.woodBare, '抹角梁'));
-      g.add(mesh(N.shortPosts(S.R * 0.46, S._bracketTop + 0.24, 0.44), M.woodBare, '蜀柱'));
-      g.add(mesh(N.diagonalBeams(S.R * 0.50, S._bracketTop + 0.70, { shrink: 0.66, w: 0.12, h: 0.20 }), M.woodBare, '递角梁'));
-      g.add(mesh(N.zaojing(S.R * 0.44, S._bracketTop + 0.30, { depth: 0.52 }), M.woodRed, '藻井'));
+      g.add(mesh(N.diagonalBeams(S.R * 0.82, S._bracketTop + 0.10, { shrink: 0.66 }), M.woodBare, 'Diagonal Beam'));
+      g.add(mesh(N.shortPosts(S.R * 0.46, S._bracketTop + 0.24, 0.44), M.woodBare, 'Short Post'));
+      g.add(mesh(N.diagonalBeams(S.R * 0.50, S._bracketTop + 0.70, { shrink: 0.66, w: 0.12, h: 0.20 }), M.woodBare, 'Inner Diagonal'));
+      g.add(mesh(N.zaojing(S.R * 0.44, S._bracketTop + 0.30, { depth: 0.52 }), M.woodRed, 'Coffered Ceiling'));
     }
 
     /* ----- 屋檐 / 屋顶 ----- */
@@ -246,12 +246,12 @@ export function buildPagoda(M, opts = {}) {
       const isTop = S.isTop;
       const mergedCap = GRAIN[si].roof === 'cap';
       const g = step(key(si, 'roof'),
-        isTop ? '塔顶·攒尖屋面' : (mergedCap ? `第${ord}层·檐与平坐` : `第${ord}层·腰檐`),
-        isTop ? '八角攒尖，举折成曲，翼角起翘'
-          : (mergedCap ? '腰檐、平坐、栏杆一并完成' : '举折出檐，筒瓦瓦当'),
+        isTop ? 'Top Roof · Pyramidal Roof' : (mergedCap ? `Storey ${ord} · Eaves & Deck` : `Storey ${ord} · Eaves`),
+        isTop ? 'Octagonal pyramidal roof, curved profile, upturned eaves'
+          : (mergedCap ? 'Eaves, deck, and balustrade completed together' : 'Curved eaves, barrel tiles and end-discs'),
         isTop
-          ? '屋面不是一个斜面，而是一条曲线。工匠先定「举高」，再让每根檩条依次比直线低一点——这叫「举折」，屋面因此微微凹陷：檐口平缓便于泄水远抛，脊部陡峻利于排水。角部的檐口还要「起翘」并向外「出翘」，翼角便如鸟翼上扬。'
-          : '「腰檐」是每层各自的小屋檐。出檐深远，把雨水甩离柱身与台基；檐下阴影又替木构挡住日晒，是最朴素的耐久之道。檐口每垄筒瓦收头一枚瓦当，缝间垂一枚滴水。',
+          ? 'The roof surface is not a flat plane, but a curve. Craftsmen first set the "Rise", then place each purlin slightly lower than a straight line—this is called "Juzhe" (Rise and Fold), causing the roof to slightly concave: the gentle eaves throw water far, while the steep ridge facilitates drainage. The corners of the eaves must also "Qi Qiao" (lift up) and "Chu Qiao" (push out), making the corner wings sweep upward like a bird in flight.'
+          : '"Yaoyan" are the small individual eaves of each storey. The deep overhang throws rainwater away from the columns and base; the shadow beneath the eaves protects the timber from sun exposure, the most simple path to durability. The end of each ridge of barrel tiles is capped with a round disc, and a drip tile hangs between the seams.',
         'tile');
       const Reave = S.R + (S._reach || 0.5) + S.eaveOut * 0.42;
       const roofG = R.roof(Reave, isTop ? S.roofRise : S.roofRise, M, {
@@ -275,9 +275,9 @@ export function buildPagoda(M, opts = {}) {
     /* ----- 平坐 + 栏杆 (not on the top storey) ----- */
     if (!S.isTop) {
       const nextR = sched[si + 1].R;
-      const g = step(key(si, 'pz'), `第${ord}层·平坐栏杆`,
-        '暗层挑台 + 寻杖栏杆',
-        '「平坐」是夹在两层之间的暗层，用一圈短柱和斗拱把楼板挑出塔身之外，形成可以绕塔一周的走廊。它同时是结构上的加强环——短柱密集、斜撑交织，像给塔身系上一道腰带。外沿装寻杖栏杆：望柱作莲瓣柱头，中嵌华板。',
+      const g = step(key(si, 'pz'), `Storey ${ord} · Deck & Balustrade`,
+        'Cantilevered blind-storey + Handrail balustrade',
+        'The "Pingzuo" (Flat-seat) is a blind storey sandwiched between two floors, using a ring of short columns and brackets to cantilever the floorboards outside the tower body, forming a wrap-around corridor. It is also a structural reinforcing ring—dense short columns and interwoven diagonal braces act like a belt tied around the pagoda. The outer edge is fitted with a balustrade: the newel posts have lotus-petal heads, with pierced panels embedded in between.',
         'wood');
       const pzY = S._bracketTop + 0.14;
       // 平坐 short columns
@@ -294,7 +294,7 @@ export function buildPagoda(M, opts = {}) {
       const deckR = nextR + 0.30 + pzMerged.reach + 0.20;
       const deck = B.pingzuoDeck(deckR, 0.20);
       deck.translate(0, pzY + S.pingzuoH + pzMerged.top, 0);
-      g.add(mesh(deck, M.woodRed, '平坐楼板'));
+      g.add(mesh(deck, M.woodRed, 'Deck Floorboards'));
       // balustrade on the deck
       const bal = B.balustrade(deckR, { h: 0.62, openFace: -1, inset: 0.16 });
       const balY = pzY + S.pingzuoH + pzMerged.top + 0.20;
@@ -302,7 +302,7 @@ export function buildPagoda(M, opts = {}) {
         bal.posts.map(p => ({ p: [p.p[0], balY, p.p[2]], r: p.r }))));
       const railG = bal.railGeo;
       railG.translate(0, balY, 0);
-      g.add(mesh(railG, M.woodRed, '栏杆'));
+      g.add(mesh(railG, M.woodRed, 'Balustrade'));
       Y = balY + 0.10;
     } else {
       Y = S._roofTopY;
@@ -311,9 +311,9 @@ export function buildPagoda(M, opts = {}) {
 
   /* ---------- FINAL STEP · 塔刹 ------------------------------------------ */
   {
-    const g = step('finial', '塔刹·相轮宝珠',
-      '覆钵 仰莲 七重相轮 宝珠',
-      '「塔刹」是塔的冠冕，也是它的宗教本体——一座缩小的窣堵坡。自下而上：刹座、覆钵、仰莲、七重相轮、圆光、仰月、宝盖，最后一颗宝珠擎天。中心一根刹杆直插进梁架，四周铁链牵向戗脊，既固定又能在风中微微摆动。刹尖同时是避雷针：千百年来雷电由铁链导入地下，木塔得以幸存。',
+    const g = step('finial', 'Finial · Discs & Jewel',
+      'Inverted Bowl, Lotus, 7 Discs, Crowning Jewel',
+      'The "Finial" is the crown of the pagoda, and also its religious essence—a miniature stupa. From bottom to top: Base, Inverted Bowl, Upward Lotus, Seven-layer Discs, Halo, Crescent, Canopy, and a final Crowning Jewel touching the sky. A central mast plunges straight into the roof frame, with iron chains anchoring it to the hip ridges around it, fixing it while allowing slight sway in the wind. The tip also acts as a lightning rod: for over a thousand years, lightning has been conducted into the ground via the chains, allowing the timber pagoda to survive.',
       'gold');
     const top = sched[sched.length - 1];
     const fin = N.finial(M, { scale: 1.0, rings: 7 });
@@ -323,7 +323,7 @@ export function buildPagoda(M, opts = {}) {
     const chainTop = fin.position.y + fin.userData.height * 0.62;
     g.add(mesh(
       N.guyChains(chainTop, top._eaveR * 0.92, top._bracketTop + top._roof.userData.eaveY + 0.42, { sag: 0.34 }),
-      M.bronze, '铁链'));
+      M.bronze, 'Iron Chains'));
     // 风铎 hanging off the chains
     const bellTf = [];
     for (let k = 0; k < 8; k++) {
