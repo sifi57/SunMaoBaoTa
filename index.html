@@ -59,12 +59,28 @@
 
   <!-- ── Placing Guide ── -->
   <section id="placing" class="screen hidden pointer-none">
+    <div class="place-status" id="place-status">
+      <span class="status-dot"></span>
+      <span class="status-txt" id="status-txt">寻找平整地面...</span>
+    </div>
+
     <div class="place-hint">
       <div class="scan-icon"><i></i><i></i><i></i></div>
-      <p class="place-title" id="place-title">Move your phone slowly<br>to find a flat surface</p>
-      <p class="place-sub" id="place-sub">Floor, desk, or book will do</p>
+      <p class="place-title" id="place-title">移动手机扫描地面<br><small>Scan Floor or Desk</small></p>
+      <p class="place-sub" id="place-sub">对准有纹理的地面缓缓平移，或点击下方【直接放置】</p>
     </div>
-    <button id="btn-place" class="btn-place">Place</button>
+
+    <div class="place-actions">
+      <button id="btn-place" class="btn-place">
+        <span class="btn-l" id="btn-place-l">放置宝塔</span>
+        <span class="btn-s" id="btn-place-s">点击在此处放置</span>
+      </button>
+      <div class="place-sub-bar">
+        <button id="btn-force-place" class="btn-ghost sm">直接放置</button>
+        <button id="btn-switch-viewer" class="btn-ghost sm">切换 3D 模式</button>
+      </div>
+      <p class="place-tips" id="place-tips">无法识别地面？地砖反光或光线较暗时，可点击【直接放置】快速进入</p>
+    </div>
   </section>
 
   <!-- ── Main HUD ── -->

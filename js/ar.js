@@ -151,9 +151,34 @@ export class AREngine {
       t.rotation.y = -a;
       g.add(t);
     }
+    // glowing center marker
+    const center = new THREE.Mesh(
+      new THREE.CircleGeometry(0.045, 24),
+      new THREE.MeshBasicMaterial({ color: 0xffe6b0, transparent: true, opacity: 0.7, side: THREE.DoubleSide })
+    );
+    center.rotateX(-Math.PI / 2);
+    center.position.y = 0.0015;
+    g.add(center);
+
     g.visible = false;
     this.reticle = g;
+    this.reticleRing = ring;
+    this.reticleCenter = center;
     this.scene.add(g);
+  }
+
+  setReticleVisual(state) {
+    if (!this.reticleRing) return;
+    if (state === 'found') {
+      this.reticleRing.material.color.setHex(0x52c41a);
+      if (this.reticleCenter) this.reticleCenter.material.color.setHex(0xb7eb8f);
+    } else if (state === 'estimated' || state === 'floor') {
+      this.reticleRing.material.color.setHex(0xffb84d);
+      if (this.reticleCenter) this.reticleCenter.material.color.setHex(0xffe6b0);
+    } else {
+      this.reticleRing.material.color.setHex(0xffd591);
+      if (this.reticleCenter) this.reticleCenter.material.color.setHex(0xffe6b0);
+    }
   }
 
   /* ---------- shadow catcher (invisible floor that receives shadow) ---- */
@@ -213,21 +238,44 @@ export class AREngine {
   /* Mode A — WebXR                                                        */
   /* ==================================================================== */
   async startXR() {
-    const session = await navigator.xr.requestSession('immersive-ar', {
-      requiredFeatures: ['hit-test', 'local-floor'],
-      optionalFeatures: ['dom-overlay', 'light-estimation', 'anchors'],
-      domOverlay: { root: document.getElementById('ui') }
-    });
+    let session;
+    try {
+      session = await navigator.xr.requestSession('immersive-ar', {
+        requiredFeatures: ['hit-test'],
+        optionalFeatures: ['local-floor', 'dom-overlay', 'light-estimation', 'anchors'],
+        domOverlay: { root: document.getElementById('ui') }
+      });
+    } catch (e) {
+      session = await navigator.xr.requestSession('immersive-ar', {
+        optionalFeatures: ['hit-test', 'local-floor', 'dom-overlay', 'light-estimation'],
+        domOverlay: { root: document.getElementById('ui') }
+      });
+    }
     this.session = session;
     this.mode = MODE.XR;
     this.renderer.xr.enabled = true;
-    this.renderer.xr.setReferenceSpaceType('local-floor');
+
+    let refSpaceType = 'local-floor';
+    let localSpace;
+    try {
+      localSpace = await session.requestReferenceSpace('local-floor');
+    } catch {
+      refSpaceType = 'local';
+      localSpace = await session.requestReferenceSpace('local');
+    }
+    this._localSpace = localSpace;
+    this._refSpaceType = refSpaceType;
+    this.renderer.xr.setReferenceSpaceType(refSpaceType);
     await this.renderer.xr.setSession(session);
     this.setSkyVisible(false);
 
-    const viewerSpace = await session.requestReferenceSpace('viewer');
-    this._localSpace = await session.requestReferenceSpace('local-floor');
-    this._hitTestSource = await session.requestHitTestSource({ space: viewerSpace });
+    try {
+      const viewerSpace = await session.requestReferenceSpace('viewer');
+      this._hitTestSource = await session.requestHitTestSource({ space: viewerSpace });
+    } catch (e) {
+      console.warn('Hit test source unavailable, using virtual ground fallback', e);
+      this._hitTestSource = null;
+    }
 
     // light estimation, if the device offers it
     try {
@@ -238,13 +286,16 @@ export class AREngine {
       this._hitTestSource = null;
       this.mode = MODE.VIEW;
       this.renderer.xr.enabled = false;
+      this.renderer.setAnimationLoop(null);
       this.setSkyVisible(true);
       this.onModeChange(MODE.VIEW);
     });
 
-    // tap to place
+    // tap to place via WebXR hardware select event
     this._xrSelect = () => {
-      if (this.reticle.visible && !this.placed) this._commitPlacement(this.reticle.matrix);
+      if (!this.placed) {
+        this.tapPlace();
+      }
     };
     session.addEventListener('select', this._xrSelect);
 
@@ -253,7 +304,14 @@ export class AREngine {
     return session;
   }
 
-  endXR() { if (this.session) this.session.end(); }
+  endXR() {
+    if (this.session) {
+      try { this.session.end(); } catch {}
+      this.session = null;
+    }
+    this.renderer.xr.enabled = false;
+    this.renderer.setAnimationLoop(null);
+  }
 
   /* ==================================================================== */
   /* Mode B — camera video + gyro                                          */
@@ -279,6 +337,10 @@ export class AREngine {
     this.video = videoEl;
     this.stream = stream;
 
+    // Reset camera position to human eye height in world coordinates
+    this.camera.position.set(0, 1.45, 0);
+    this.camera.rotation.set(0, 0, 0);
+
     // 2. gyro permission (iOS 13+)
     if (typeof DeviceOrientationEvent !== 'undefined' &&
       typeof DeviceOrientationEvent.requestPermission === 'function') {
@@ -296,23 +358,27 @@ export class AREngine {
 
     // in gyro mode the reticle floats at a fixed distance ahead
     this.reticle.visible = true;
-    this._gyroDist = 2.6;
+    this._gyroDist = 2.4;
   }
 
   stopGyro() {
     if (this.stream) this.stream.getTracks().forEach(t => t.stop());
     this.stream = null;
     if (this.video) this.video.srcObject = null;
-    removeEventListener('deviceorientation', this._onOri);
+    if (this._onOri) {
+      removeEventListener('deviceorientation', this._onOri, true);
+      removeEventListener('deviceorientationabsolute', this._onOri, true);
+    }
     this.mode = MODE.VIEW;
     this.setSkyVisible(true);
     this.onModeChange(MODE.VIEW);
   }
 
   _initGyro() {
-    this._ori = { alpha: 0, beta: 90, gamma: 0 };
-    this._oriSmooth = { alpha: 0, beta: 90, gamma: 0 };
+    this._ori = { alpha: 0, beta: 80, gamma: 0 };
+    this._oriSmooth = { alpha: 0, beta: 80, gamma: 0 };
     this._alphaOffset = null;
+    this._gyroLive = false;
     this._onOri = (e) => {
       if (e.alpha === null) return;
       this._ori.alpha = e.alpha;
@@ -322,6 +388,7 @@ export class AREngine {
       this._gyroLive = true;
     };
     addEventListener('deviceorientation', this._onOri, true);
+    addEventListener('deviceorientationabsolute', this._onOri, true);
   }
 
   /** Convert device orientation to a camera quaternion. */
@@ -358,33 +425,55 @@ export class AREngine {
 
   /**
    * In gyro mode there is no plane detection, so we synthesise a floor:
-   * the reticle rides on the y = -eyeHeight plane along the camera's
+   * the reticle rides on the y = 0 floor plane along the camera's
    * forward ray. Tapping commits the world there.
    */
   _updateGyroReticle() {
     if (this.placed) { this.reticle.visible = false; return; }
-    const eye = this._eyeHeight ?? 1.45;
     const dir = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.quaternion);
     const origin = this.camera.position;
     let t;
-    if (dir.y < -0.06) {
-      // looking down: intersect the floor plane properly
+    const isFloor = dir.y < -0.05;
+    if (isFloor) {
+      // looking down: intersect the floor plane y = 0 properly
       t = (0 - origin.y) / dir.y;
-      t = Math.min(Math.max(t, 0.8), 7.0);
+      t = Math.min(Math.max(t, 0.7), 6.0);
     } else {
-      // looking level/up: park it at a comfortable distance
-      t = this._gyroDist;
+      // looking level/up: park it at a comfortable ground distance ahead
+      t = this._gyroDist || 2.4;
     }
     const p = origin.clone().add(dir.multiplyScalar(t));
     p.y = 0;
     this.reticle.position.lerp(p, 0.28);
     this.reticle.visible = true;
-    this.onSurfaceState(dir.y < -0.06 ? 'floor' : 'seek');
+    this.setReticleVisual(isFloor ? 'floor' : 'seek');
+    this.onSurfaceState(isFloor ? 'floor' : 'seek');
   }
 
-  /** Tap handler for gyro / viewer mode. */
-  tapPlace() {
+  /** Tap handler for XR / gyro / viewer mode. */
+  tapPlace(force = false) {
     if (this.placed) return false;
+    if (this.mode === MODE.XR) {
+      if (this.reticle.visible && !force) {
+        this._commitPlacement(this.reticle.matrix);
+        return true;
+      }
+      // Force or fallback placement directly in front on floor
+      const camDir = new THREE.Vector3();
+      const camPos = new THREE.Vector3();
+      this.camera.getWorldDirection(camDir);
+      this.camera.getWorldPosition(camPos);
+      const floorY = (this._refSpaceType === 'local-floor') ? 0 : (camPos.y - 1.4);
+      let dist = 2.0;
+      if (camDir.y < -0.05) {
+        dist = Math.min(Math.max((floorY - camPos.y) / camDir.y, 0.7), 4.5);
+      }
+      const p = camPos.clone().add(camDir.multiplyScalar(dist));
+      p.y = floorY;
+      const m = new THREE.Matrix4().makeTranslation(p.x, p.y, p.z);
+      this._commitPlacement(m);
+      return true;
+    }
     if (this.mode === MODE.GYRO) {
       const m = new THREE.Matrix4().makeTranslation(
         this.reticle.position.x, this.reticle.position.y, this.reticle.position.z);
@@ -479,20 +568,60 @@ export class AREngine {
 
     if (this.mode === MODE.XR && frame) {
       // --- hit test ---
-      if (this._hitTestSource && !this.placed) {
-        const hits = frame.getHitTestResults(this._hitTestSource);
-        if (hits.length) {
-          const pose = hits[0].getPose(this._localSpace);
-          this.reticle.visible = true;
-          this.reticle.matrix.fromArray(pose.transform.matrix);
-          this.reticle.matrixAutoUpdate = false;
-          this.reticle.matrix.decompose(
-            this.reticle.position, this.reticle.quaternion, this.reticle.scale);
-          this.reticle.matrixAutoUpdate = true;
-          this.onSurfaceState('found');
-        } else {
-          this.reticle.visible = false;
-          this.onSurfaceState('seek');
+      if (!this.placed) {
+        let foundRealHit = false;
+        if (this._hitTestSource) {
+          const hits = frame.getHitTestResults(this._hitTestSource);
+          if (hits.length) {
+            const pose = hits[0].getPose(this._localSpace);
+            if (pose) {
+              foundRealHit = true;
+              this.reticle.visible = true;
+              this.reticle.matrix.fromArray(pose.transform.matrix);
+              this.reticle.matrixAutoUpdate = false;
+              this.reticle.matrix.decompose(
+                this.reticle.position, this.reticle.quaternion, this.reticle.scale);
+              this.reticle.matrixAutoUpdate = true;
+              this.setReticleVisual('found');
+              this.onSurfaceState('found');
+            }
+          }
+        }
+
+        if (!foundRealHit) {
+          // Virtual ground estimation fallback from viewer pose
+          const viewerPose = frame.getViewerPose(this._localSpace);
+          if (viewerPose) {
+            const vPos = viewerPose.transform.position;
+            const vOri = viewerPose.transform.orientation;
+            const camPos = new THREE.Vector3(vPos.x, vPos.y, vPos.z);
+            const camQuat = new THREE.Quaternion(vOri.x, vOri.y, vOri.z, vOri.w);
+            const camDir = new THREE.Vector3(0, 0, -1).applyQuaternion(camQuat);
+
+            const floorY = (this._refSpaceType === 'local-floor') ? 0 : (camPos.y - 1.4);
+            const isLookingDown = camDir.y < -0.05;
+            let t = 2.0;
+            if (isLookingDown && (floorY - camPos.y) / camDir.y > 0) {
+              t = (floorY - camPos.y) / camDir.y;
+              t = Math.min(Math.max(t, 0.6), 5.0);
+            }
+
+            const p = camPos.clone().add(camDir.multiplyScalar(t));
+            p.y = floorY;
+
+            this.reticle.position.copy(p);
+            const yaw = Math.atan2(camDir.x, camDir.z);
+            this.reticle.rotation.set(0, yaw, 0);
+            this.reticle.updateMatrix();
+            this.reticle.visible = true;
+
+            const st = isLookingDown ? 'estimated' : 'seek';
+            this.setReticleVisual(st);
+            this.onSurfaceState(st);
+          } else {
+            this.reticle.visible = false;
+            this.onSurfaceState('seek');
+          }
         }
       }
       // --- light estimation ---

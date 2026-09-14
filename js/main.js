@@ -196,31 +196,92 @@ function makePlaqueMaterial(text) {
 /* ==========================================================================
    Placing
    ========================================================================== */
+let _placingTimeout = null;
+
 function enterPlacing() {
   show('#placing');
-  $('#btn-place').addEventListener('click', () => S.engine.tapPlace());
-  // in gyro mode also accept a tap anywhere on the canvas
+  const btn = $('#btn-place');
+  const forceBtn = $('#btn-force-place');
+  const switchBtn = $('#btn-switch-viewer');
+
+  if (btn) btn.onclick = () => S.engine.tapPlace();
+  if (forceBtn) forceBtn.onclick = () => S.engine.tapPlace(true);
+  if (switchBtn) switchBtn.onclick = () => switchToViewerMode();
+
   $('#gl').addEventListener('pointerdown', onCanvasTap);
   updateModeLabel();
+
+  // If scanning is taking time, guide user with friendly tip
+  if (_placingTimeout) clearTimeout(_placingTimeout);
+  _placingTimeout = setTimeout(() => {
+    const tip = $('#place-tips');
+    if (tip && !S.engine.placed) {
+      tip.classList.add('highlight');
+      tip.textContent = '无法识别地面？地砖反光或光线较暗时，可点击【直接放置】快速体验';
+    }
+  }, 2200);
+}
+
+function switchToViewerMode() {
+  if (S.mode === MODE.XR) {
+    S.engine.endXR();
+  } else if (S.mode === MODE.GYRO) {
+    S.engine.stopGyro();
+    $('#feed').classList.remove('on');
+    $('#vignette').classList.remove('on');
+  }
+  hide('#placing');
+  const height = S.pagoda?.userData?.height || 6.0;
+  S.engine.startViewer(new THREE.Vector3(0, height * S.scales[S.scaleIdx] * 0.45, 0));
+  if (S.pagoda) {
+    S.engine.frameObject(new THREE.Box3().setFromObject(S.pagoda), { pad: 1.35 });
+  }
+  onPlaced(new THREE.Vector3());
+  toast('已切换至 3D 自由视角');
 }
 
 function onSurface(state) {
   const btn = $('#btn-place');
-  const title = $('#place-title'), sub = $('#place-sub');
-  if (state === 'found' || state === 'floor') {
-    btn.classList.add('ready');
-    title.innerHTML = 'Surface found<br>Tap "Place" to start';
-    sub.textContent = 'You can walk around after placing';
-  } else {
-    btn.classList.remove('ready');
-    if (S.mode === MODE.GYRO) {
-      btn.classList.add('ready');   // gyro mode can always place
-      title.innerHTML = 'Tilt your phone down<br>towards the floor';
-      sub.textContent = 'Tap "Place" when ready';
-    } else {
-      title.innerHTML = 'Move your phone slowly<br>to find a flat surface';
-      sub.textContent = 'Floor, desk, or book will do';
+  const btnL = $('#btn-place-l');
+  const btnS = $('#btn-place-s');
+  const title = $('#place-title');
+  const sub = $('#place-sub');
+  const statusEl = $('#place-status');
+  const statusTxt = $('#status-txt');
+
+  if (!btn) return;
+
+  if (state === 'found') {
+    if (statusEl) {
+      statusEl.className = 'place-status locked';
+      if (statusTxt) statusTxt.textContent = '已精准锁定物理平面';
     }
+    btn.classList.add('ready');
+    if (btnL) btnL.textContent = '放置宝塔';
+    if (btnS) btnS.textContent = '已识别地面 · 点击在此处放置';
+    if (title) title.innerHTML = '已找到理想平面<br><small>Surface Locked</small>';
+    if (sub) sub.textContent = '点击下方按钮或轻触屏幕，即刻开始筑塔';
+  } else if (state === 'estimated' || state === 'floor') {
+    if (statusEl) {
+      statusEl.className = 'place-status estimated';
+      if (statusTxt) statusTxt.textContent = '已对齐空间基准地面';
+    }
+    btn.classList.add('ready');
+    if (btnL) btnL.textContent = '放置宝塔';
+    if (btnS) btnS.textContent = '空间基准就绪 · 点击直接放置';
+    if (title) title.innerHTML = '已对准地面基准<br><small>Ground Plane Aligned</small>';
+    if (sub) sub.textContent = '点击放置宝塔，或移动至更宽敞的地面';
+  } else {
+    // Seeking - keep button usable with estimated positioning
+    if (statusEl) {
+      statusEl.className = 'place-status seeking';
+      if (statusTxt) statusTxt.textContent = '寻找平整地面中...';
+    }
+    btn.classList.add('ready');
+    if (btnL) btnL.textContent = '放置宝塔';
+    if (btnS) btnS.textContent = '对准前方地面 · 点击直接放置';
+    if (title) title.innerHTML = '移动手机扫描地面<br><small>Scan Floor or Desk</small>';
+    if (sub) sub.textContent = '将镜头对准地面平移；也可随时点击【直接放置】';
   }
 }
 
@@ -229,6 +290,10 @@ function onCanvasTap(e) {
 }
 
 function onPlaced(pos) {
+  if (_placingTimeout) {
+    clearTimeout(_placingTimeout);
+    _placingTimeout = null;
+  }
   hide('#placing');
   show('#hud');
   $('#gl').removeEventListener('pointerdown', onCanvasTap);
